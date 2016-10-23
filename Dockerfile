@@ -17,8 +17,6 @@ RUN apk add --no-cache ca-certificates curl && \
     rm terraform_${TF_VERSION}_linux_amd64.zip && \
     adduser -D $USER
 
-#apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ terraform && \
-
 USER $USER
 WORKDIR /home/$USER
 
