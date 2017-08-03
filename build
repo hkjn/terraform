@@ -1,19 +1,20 @@
 #!/bin/bash
 set -euo pipefail
 
-DOCKER_USER="hkjn"
-DOCKER_IMAGE="terraform"
+declare DOCKER_USER="hkjn"
+declare DOCKER_IMAGE="terraform"
+declare ARCH="$(uname -m)"
+declare BUILD_DIR="$(mktemp -d)"
+declare BASEIMAGE="hkjn/alpine:$(uname -m)"
+declare TAG="$DOCKER_USER/$DOCKER_IMAGE"
 
-ARCH="$(uname -m)"
-BUILD_DIR="$(mktemp -d)"
-
-cp Dockerfile hashicorp.asc "$BUILD_DIR/"
+sed "s|{{ARG_FROM}}|${BASEIMAGE}|g" Dockerfile.in > $BUILD_DIR/Dockerfile
+cp hashicorp.asc "$BUILD_DIR/"
 [[ $ARCH = "x86_64" ]] || {
   sed -i "s/FROM hkjn\//FROM hkjn\/$ARCH-/" "$BUILD_DIR/Dockerfile"
   DOCKER_IMAGE="$ARCH-$DOCKER_IMAGE"
 }
 
-TAG="$DOCKER_USER/$DOCKER_IMAGE"
 echo "Building $TAG in $BUILD_DIR"
 docker build -t $TAG "$BUILD_DIR/"
 NO_PUSH=${NO_PUSH:-""}

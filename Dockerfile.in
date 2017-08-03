@@ -1,6 +1,6 @@
-FROM hkjn/alpine
+FROM {{ARG_FROM}}
 
-ENV TF_VERSION=0.9.2 \
+ENV TF_VERSION=0.9.11 \
     USER=tfuser
 
 COPY hashicorp.asc .
