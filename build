@@ -3,19 +3,23 @@ set -euo pipefail
 
 declare DOCKER_USER="hkjn"
 declare DOCKER_IMAGE="terraform"
-declare ARCH="$(uname -m)"
-declare BUILD_DIR="$(mktemp -d)"
-declare BASEIMAGE="hkjn/alpine:$(uname -m)"
-declare TAG="$DOCKER_USER/$DOCKER_IMAGE"
+declare CPU_ARCH="$(uname -m)"
+declare TF_ARCH=""
+declare DOCKER_ARCH=""
 
-sed "s|{{ARG_FROM}}|${BASEIMAGE}|g" Dockerfile.in > $BUILD_DIR/Dockerfile
-cp hashicorp.asc "$BUILD_DIR/"
-[[ $ARCH = "x86_64" ]] || {
-  sed -i "s/FROM hkjn\//FROM hkjn\/$ARCH-/" "$BUILD_DIR/Dockerfile"
-  DOCKER_IMAGE="$ARCH-$DOCKER_IMAGE"
-}
+if [[ "${CPU_ARCH}" = "x86_64" ]]; then
+	TF_ARCH="linux_amd64"
+	DOCKER_ARCH="amd64"
+elif [[ "${CPU_ARCH}" = "armv7l" ]]; then
+	TF_ARCH="linux_arm"
+	DOCKER_ARCH="arm"
+else
+	echo "FATAL: Unsupported CPU arch ${CPU_ARCH}." >&2
+	exit 1
+fi
 
-echo "Building $TAG in $BUILD_DIR"
-docker build -t $TAG "$BUILD_DIR/"
+declare TAG="${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_ARCH}"
+echo "Building ${TAG}"
+docker build --build-arg tf_arch=${TF_ARCH} -t ${TAG} .
 NO_PUSH=${NO_PUSH:-""}
 [[ "$NO_PUSH" ]] || docker push $TAG
