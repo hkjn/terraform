@@ -2,7 +2,7 @@ FROM hkjn/alpine
 
 ARG tf_arch
 
-ENV TF_VERSION=0.9.11 \
+ENV TF_VERSION=0.10.6 \
     USER=tfuser \
     TF_ARCH=$tf_arch
 
